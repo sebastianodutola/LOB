@@ -1,0 +1,124 @@
+Perfect — that’s the right mindset. Two days means you need to maximise perceived sophistication per hour of work — not build a perfect simulator.
+
+Here’s a realistic, high-impact priority plan, tailored for your existing codebase and timeline.
+
+⸻
+
+⚡ PRIORITY LIST (2-Day Upgrade Plan)
+
+🥇 1. Fix the “free money” flaw (highest impact, ~3 hrs)
+
+Right now your market maker can’t lose because fills are guaranteed and price has no drift.
+Fix that and you instantly make it look like a real backtest.
+
+Quick implementation:
+	•	Introduce a stochastic mid-price:
+
+price_t += np.random.normal(0, sigma_price)
+order_flow.base_price = price_t
+
+
+	•	Let order flow prices be drawn around that base.
+	•	The market maker now faces adverse price movement → inventory matters.
+
+✅ Result: Strategy now produces variable PnL — looks real, not rigged.
+
+⸻
+
+🥈 2. Add simple performance analytics (2 hrs)
+
+Recruiters love metrics. Even basic analytics make your results look like “quant research.”
+
+Implement:
+
+import pandas as pd
+df = pd.DataFrame({
+    "t": np.arange(timesteps),
+    "pnl": pnl,
+    "inventory": inventory,
+    "mid": mids
+})
+
+Then compute:
+
+mean_pnl = df.pnl.mean()
+sharpe = df.pnl.diff().mean() / df.pnl.diff().std() * np.sqrt(252)
+max_drawdown = (df.pnl.cummax() - df.pnl).max()
+
+and plot:
+	•	PnL curve
+	•	Inventory over time
+	•	Histogram of inventory
+
+✅ Result: One slide’s worth of quant-style results.
+
+⸻
+
+🥉 3. Add simple inventory risk control (1–2 hrs)
+
+Make your market maker behave intelligently rather than symmetrically.
+
+Modify strategy:
+	•	When inventory > 0, quote slightly wider on the bid and tighter on the ask.
+	•	When inventory < 0, do the opposite.
+
+Example:
+
+spread_adj = 0.01 * (self.inventory / self.inventory_limit)
+bid = round(order_book.best_bid + tick - spread_adj, 2)
+ask = round(order_book.best_ask - tick + spread_adj, 2)
+
+✅ Result: Looks like a real adaptive quoting model.
+
+⸻
+
+🪶 4. Improve visuals & presentation (2 hrs)
+
+You’ll get huge perceived value from clear output and a polished README.
+	•	Plot midprice, bid/ask, and market maker quotes (use different colors).
+	•	Add 2–3 concise bullet points in README:
+	•	“Implements Level-3 LOB with price–time priority”
+	•	“Poisson order flow with stochastic midprice”
+	•	“Market-making strategy with adaptive spread and inventory control”
+	•	Include 2–3 plots as figures.
+	•	End with: “This project demonstrates microstructure-level trading logic and backtesting for a market-making strategy.”
+
+✅ Result: Visually professional, ready for GitHub / interview.
+
+⸻
+
+🧠 5. (Optional if time left, 2–3 hrs)
+
+Add parameter sensitivity analysis:
+Run 3 simulations with different σ (price volatility) and plot PnL distributions side-by-side.
+
+✅ Result: Instantly looks like “research” and gives you talking points like
+
+“As volatility increases, the maker’s spread capture is offset by inventory risk.”
+
+⸻
+
+📅 Suggested Schedule
+
+Time	Task	Deliverable
+Morning Day 1	Add stochastic price dynamics	Non-deterministic PnL
+Afternoon Day 1	Analytics + plots	PnL curve, Sharpe, drawdown
+Morning Day 2	Adaptive quoting (inventory control)	Smoothed inventory
+Afternoon Day 2	README + visuals + short demo video	GitHub-ready project
+(Optional evening)	Run sensitivity experiment	3 plots + short comment
+
+
+⸻
+
+🎯 After this upgrade
+
+Your project will:
+	•	Have realistic market behaviour (price drift, inventory risk)
+	•	Produce quant-style analytics and visuals
+	•	Demonstrate both engineering and trading intuition
+	•	Be polished enough to drop straight into your CV or GitHub
+
+⸻
+
+If you want, I can sketch the README structure (sections, figure layout, short technical intro paragraph) so you can paste it directly tomorrow.
+Would you like that next?
