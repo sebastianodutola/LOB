@@ -33,6 +33,8 @@ class OrderBook:
         Property returning bid-ask spread.
     mid_price
         Property returning mid-market price.
+    Advance()
+        Advance the book state by one timestep.
     get_best_bid()
         Get best bid price.
     get_best_ask()
@@ -79,10 +81,10 @@ class OrderBook:
         float or None
             Spread between best ask and best bid, or None if either is missing.
         """
-        if self.best_bid is None or self.best_ask is None:
+        if self.get_best_bid() is None or self.get_best_ask() is None:
             return None
         else:
-            return round(self.best_ask - self.best_bid, 2)
+            return round(self.get_best_ask() - self.get_best_bid(), 2)
 
     @property
     def mid_price(self):
@@ -94,10 +96,17 @@ class OrderBook:
         float or None
             Average of best bid and ask, or None if either is missing.
         """
-        if self.best_bid is None or self.best_ask is None:
+        if self.get_best_bid() is None or self.get_best_ask() is None:
             return None
         else:
             return round((self.get_best_ask() + self.get_best_bid()) / 2, 2)
+        
+    def advance(self):
+        """
+        Advance the state of the book by one step, cancelling expiring orders.
+        """
+        expirations = self.expiration_wheel.advance()
+        self.process_cancellations(expirations)
 
     def get_best_bid(self):
         """
@@ -108,7 +117,7 @@ class OrderBook:
         float or None
             Highest bid price, or None if no bids.
         """
-        return self.bids.best_price()
+        return self.bids.get_best_price()
 
     def get_best_ask(self):
         """
@@ -119,7 +128,7 @@ class OrderBook:
         float or None
             Lowest ask price, or None if no asks.
         """
-        return self.asks.best_price()
+        return self.asks.get_best_price()
 
     def process_orders(self, orders):
         """

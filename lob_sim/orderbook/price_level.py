@@ -130,6 +130,7 @@ class PriceLevel:
             # Update order volumes
             top_order.volume -= trade_volume
             order.volume -= trade_volume
+            self.volume -= trade_volume
 
             # Log trade
             bid = order if is_bid else top_order

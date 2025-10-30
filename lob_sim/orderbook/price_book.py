@@ -31,7 +31,7 @@ class PriceBook:
         Add an order to the appropriate price level.
     cancel(order)
         Cancel and remove an order from the book.
-    best_price()
+    get_best_price()
         Get the best available price on this side.
     fill(order)
         Fill an incoming order against this side of the book.
@@ -168,10 +168,9 @@ class PriceBook:
 
         price = order.price
         trades = []
-        best_price = self.best_price()
+        best_price = self.get_best_price()
 
         while best_price and order.volume > 0:
-
             # Check whether prices are compatible
             can_fill = (best_price >= price) if self.is_bid_side else (
                 best_price <= price
@@ -196,7 +195,7 @@ class PriceBook:
 
             # This simultaneously removes empty price levels and establishes
             # next best_price
-            best_price = self.best_price()
+            best_price = self.get_best_price()
 
         # Return list of trades
         return trades
