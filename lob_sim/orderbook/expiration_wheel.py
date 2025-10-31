@@ -31,6 +31,8 @@ class ExpirationWheel:
         Schedule an order for expiration based on its lifetime.
     advance()
         Advance time by one step and return expired order IDs.
+    reset()
+        Resets the expiration wheel.
     """
 
     def __init__(self, min_lifetime, max_lifetime):
@@ -76,3 +78,11 @@ class ExpirationWheel:
         expired = self.expiration_bucket[self.now]
         self.expiration_bucket[self.now] = []
         return expired
+    
+    def reset(self):
+        """
+        Resets the expiration wheel in a cache friendly way
+        """
+        self.now = 0
+        for bucket in self.expiration_bucket:
+            bucket.clear()

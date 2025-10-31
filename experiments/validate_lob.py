@@ -74,5 +74,14 @@ def run_validation():
     ob.display()
     # ==== Checkpoint 3 ====
 
+    # Validate Clearing
+    ob.clear()
+    assert ob.get_ask_depth() == 0
+    print("✅ Clearing validated")
+    print(f"Order Book Status at Checkpoint 4:")
+    ob.display()
+    # ==== Checkpoint 4 ====
+
+
 if __name__ == "__main__":
     run_validation()

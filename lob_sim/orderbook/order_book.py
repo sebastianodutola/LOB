@@ -49,6 +49,8 @@ class OrderBook:
         Get total volume on bid side.
     get_ask_depth()
         Get total volume on ask side.
+    clear()
+        Resets order book.
     display()
         Print readable view of both sides of the book.
     """
@@ -262,6 +264,15 @@ class OrderBook:
             Sum of all ask volumes across all price levels.
         """
         return self.asks.get_depth()
+    
+    def clear(self):
+        """
+        Resets order book.
+        """
+        self.trade_history.clear()
+        self.expiration_wheel.reset()
+        self.bids.clear()
+        self.asks.clear()
 
     def __repr__(self):
         return (f"OrderBook(bids={self.bids.__repr__()}, "

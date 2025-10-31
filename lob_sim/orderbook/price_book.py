@@ -37,6 +37,8 @@ class PriceBook:
         Fill an incoming order against this side of the book.
     volume()
         Get total volume across all price levels.
+    Clear()
+        Clears the pricebook.
     display()
         Print a readable view of all price levels.
     """
@@ -210,6 +212,15 @@ class PriceBook:
             Sum of volumes at all price levels.
         """
         return sum(level.volume for level in self._price_levels.values())
+    
+    def clear(self):
+        """
+        Clears the PriceBook of orders and price levels.
+        """
+        self._heap.clear()
+        self._price_levels.clear()
+        self.order_map.clear()
+
 
     def __repr__(self):
         return (f"PriceBook(is_bid_side={self.is_bid_side}, "
