@@ -36,7 +36,7 @@
 
 The performance slows because dequeu.remove() must linearly scan the deque to locate the target order. With 1000× more orders per level, the operation consumes **98.5% of total cancellation time** in DeepBook scenarios.
 
-**Fix:** sith a hash-linked list cancellation time-complexity may be reduced to O(1). However, I decided to use standard python data-structures for simplicity.
+**Fix:** A hash-linked list cancellation time-complexity may be reduced to O(1). However, I decided to use standard python data-structures for simplicity.
 
 ### 2. O(log N) Heap Operations Favor Deeper Books
 
@@ -93,6 +93,6 @@ Each call to `add()` performs:
 With 100 price levels: All objects fit in cache, lookups are fast.
 With 100k price levels: Objects scattered across memory mean each lookup is more likely to miss cache.
 
-**Result**: The ~32% cache penalty gets multiplied across multiple operations per method call, producing the observed 2× overall slowdown.
+**Result**: The ~30% cache penalty gets multiplied across multiple operations per method call, producing the observed 2× overall slowdown.
 
 Further testing would be required to verify whether the slow down can truly be attributed to cache effects.
