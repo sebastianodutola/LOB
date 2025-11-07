@@ -29,7 +29,7 @@ class SkewMarketMakingStrategy:
         Generate bid/ask orders with inventory-based skew.
     """
 
-    def __init__(self, spread, size, exposure_limit, skew_coefficient=1e-4):
+    def __init__(self, spread, size, exposure_limit, skew_coefficient=1e-5):
         """
         Parameters
         ----------

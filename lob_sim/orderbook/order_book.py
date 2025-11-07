@@ -102,7 +102,7 @@ class OrderBook:
             return None
         else:
             return round((self.get_best_ask() + self.get_best_bid()) / 2, 2)
-        
+
     def advance(self):
         """
         Advance the state of the book by one step, cancelling expiring orders.
@@ -186,8 +186,10 @@ class OrderBook:
             volume_traded += trade.volume
             total_exchanged += trade.price * trade.volume
 
-            for order, trader_id in [(trade.bid_order, trade.bid_order.trader_id),
-                                     (trade.ask_order, trade.ask_order.trader_id)]:
+            for order, trader_id in [
+                (trade.bid_order, trade.bid_order.trader_id),
+                (trade.ask_order, trade.ask_order.trader_id),
+            ]:
                 if trader_id is not None:
                     # Update or create notification
                     if order.id not in order_notifs:
@@ -197,7 +199,7 @@ class OrderBook:
 
                     order_notifs[order.id].add_trade(trade)
                     # Updates trader_notifs too because stored notif is referenced
-                    
+
         self.trade_history.append([volume_traded, total_exchanged])
 
         return trader_notifs  # Return trader-keyed version
@@ -218,9 +220,11 @@ class OrderBook:
         """
         unfilled_asks = self.asks.order_map.values()
         unfilled_bids = self.bids.order_map.values()
-        unfilled_orders = [(order.id, order.price, order.volume)
-                           for order in chain(unfilled_asks, unfilled_bids)
-                           if order.trader_id == trader_id]
+        unfilled_orders = [
+            (order.id, order.price, order.volume)
+            for order in chain(unfilled_asks, unfilled_bids)
+            if order.trader_id == trader_id
+        ]
         return unfilled_orders
 
     def process_cancellations(self, order_ids):
@@ -264,7 +268,7 @@ class OrderBook:
             Sum of all ask volumes across all price levels.
         """
         return self.asks.get_depth()
-    
+
     def clear(self):
         """
         Resets order book.
@@ -275,8 +279,9 @@ class OrderBook:
         self.asks.clear()
 
     def __repr__(self):
-        return (f"OrderBook(bids={self.bids.__repr__()}, "
-                f"asks={self.asks.__repr__()})")
+        return (
+            f"OrderBook(bids={self.bids.__repr__()}, " f"asks={self.asks.__repr__()})"
+        )
 
     def display(self):
         """

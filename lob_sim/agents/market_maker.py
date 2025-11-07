@@ -50,7 +50,7 @@ class MarketMaker:
         Get current inventory and cash statistics.
     """
 
-    def __init__(self, strategy, alpha=0.13):
+    def __init__(self, strategy, alpha=0.13, trader_id=1):
         """
         Initialize the market maker with a trading strategy.
 
@@ -62,8 +62,10 @@ class MarketMaker:
         alpha : float, optional
             EMA smoothing parameter for mid-price. Higher values give more weight
             to recent observations. Default is 0.13 (approximately 5-tick half-life).
+        trader_id : int, optional
+            Id recognised by orderbook. Default is 1.
         """
-        self.trader_id = 1
+        self.trader_id = trader_id
         self.inventory = 0
         self.cash = 0
         self.strategy = strategy
@@ -81,7 +83,7 @@ class MarketMaker:
             "spread": [],
         }
 
-    def update(self, trades_notifications, order_book):
+    def update(self, order_book, trades_notifications):
         """
         Update Market Maker state and generate new quotes for the current tick.
 

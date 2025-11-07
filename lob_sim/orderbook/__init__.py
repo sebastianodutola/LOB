@@ -1,5 +1,5 @@
 """
-Objects that together form the LOB.
+Objects forming the LOB.
 """
 
 from .expiration_wheel import ExpirationWheel

@@ -49,8 +49,10 @@ class Trade:
         self.volume = volume
 
     def __repr__(self):
-        return (f"Trade(bid_id={self.bid_order.id}, ask_id={self.ask_order.id}, "
-                f"price={self.price}, volume={self.volume})")
+        return (
+            f"Trade(bid_id={self.bid_order.id}, ask_id={self.ask_order.id}, "
+            f"price={self.price}, volume={self.volume})"
+        )
 
 
 class TradesNotification:
@@ -146,14 +148,18 @@ class TradesNotification:
 
     def __repr__(self):
         status = "FILLED" if self.is_filled else "PARTIAL"
-        return (f"TradesNotification(order_id={self.order_id}, "
-                f"filled {self.total_filled_volume}@{self.average_price:.2f} avg, "
-                f"{self.num_trades} trades, remaining={self.remaining_volume}, "
-                f"{status})")
+        return (
+            f"TradesNotification(order_id={self.order_id}, "
+            f"{'bought' if self.is_bid == True else 'sold'} {self.total_filled_volume}@{self.average_price:.2f} avg, "
+            f"{self.num_trades} trades, remaining={self.remaining_volume}, "
+            f"{status})"
+        )
 
     def __str__(self):
         status = "FILLED \u2713" if self.is_filled else "PARTIAL"
-        return (f"order_id:{self.order_id}, \n"
-                f"filled {self.total_filled_volume}@{self.average_price:.2f} avg, \n"
-                f"{self.num_trades} trades, remaining:{self.remaining_volume}, "
-                f"{status}")
+        return (
+            f"order_id:{self.order_id}, \n"
+            f"{'bought' if self.is_bid == True else 'sold'} {self.total_filled_volume}@{self.average_price:.2f} avg, \n"
+            f"{self.num_trades} trades, remaining:{self.remaining_volume}, "
+            f"{status}"
+        )
