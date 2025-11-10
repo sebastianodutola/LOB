@@ -2,6 +2,7 @@
 Asset Class for LOB simulation.
 This module defines an asset with value evolving as a random walk.
 """
+
 import numpy as np
 
 
@@ -15,24 +16,31 @@ class Asset:
         Starting value of the asset.
     value : float
         Current value of the asset.
-    
+
     Methods
     -------
     evolve_value()
         update asset value.
     """
-    
-    def __init__(self, initial_value=100):
+
+    def __init__(self, mu=0, sigma=0.1, initial_value=100):
         """
         Parameters
         ----------
+        mu : float, optional
+            Drift of random walk i.e. the mean of the normal increment. Default is 0
+        sigma : float, optional
+            deviation of random walk i.e. the std of the normal increment. Default is 0.1
         initial_value : float, optional
             Starting value of the asset. Default is 100.
         """
+        self.mu = mu
+        self.sigma = sigma
         self.initial_value = initial_value
         self.value = initial_value
+        self.history = [initial_value]
 
-    def evolve_value(self, drift=0, sigma=0.5, rng=None):
+    def evolve_value(self, rng=None):
         """
         Update asset value with random walk step.
 
@@ -47,7 +55,8 @@ class Asset:
         """
         if rng is None:
             rng = np.random.default_rng()
-        self.value += rng.normal(drift, sigma)
+        self.value += rng.normal(self.mu, self.sigma)
+        self.history.append(self.value)
 
     def __repr__(self):
         return f"Asset(value={self.value})"
@@ -59,5 +68,4 @@ class Asset:
         str
             Human-readable string describing the asset.
         """
-        return (f"Current Value: {self.value}, "
-                f"Initial Value: {self.initial_value}")
+        return f"Current Value: {self.value}, " f"Initial Value: {self.initial_value}"

@@ -41,7 +41,7 @@ class MarketMaker:
         - "cash": list of cash balances per tick
         - "buy volume": list of buy volumes per tick (incremental, not cumulative)
         - "sell volume": list of sell volumes per tick (incremental, not cumulative)
-
+        - "mark-to-market": list of mark-to-market PnL
     Methods
     -------
     update(trades_notifications, order_book)
@@ -81,6 +81,7 @@ class MarketMaker:
             "buy volume": [],
             "sell volume": [],
             "spread": [],
+            "mark-to-market": [],
         }
 
     def update(self, order_book, trades_notifications):
@@ -128,6 +129,10 @@ class MarketMaker:
         self.history["buy volume"].append(buy_volume)
         self.history["sell volume"].append(sell_volume)
         self.history["spread"].append(spread)
+
+        # Update Pnl
+        inventory_value = self.inventory * mid_price
+        self.history["mark-to-market"].append(inventory_value + self.cash)
 
         # Return quotes and cancellations to be processed
         return quotes, cancellations
