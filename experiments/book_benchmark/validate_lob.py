@@ -9,28 +9,37 @@ Run with:
 Expected output:
     - functionality validation (book state snapshots and validation messages)
 """
+
 from math import isclose
 
 from lob_sim.orderbook import OrderBook
 from lob_sim.core import Order, MarketOrder
 
-def run_validation():
-    # Create a simple OrderBook 
-    ob = OrderBook()
 
-    # Reset Order ID counter 
+def run_validation():
+    # Create a simple OrderBook
+    ob = OrderBook(use_scheduler=True)
+
+    # Reset Order ID counter
     Order._id_counter = 1
 
     # Add some test orders
     orders = [
-        Order(trader_id=101, price=100, volume=10, is_bid=True, is_market=False, lifetime=1), 
+        Order(
+            trader_id=101,
+            price=100,
+            volume=10,
+            is_bid=True,
+            is_market=False,
+            lifetime=1,
+        ),
         Order(trader_id=101, price=101, volume=5, is_bid=True, is_market=False),
         Order(trader_id=201, price=102, volume=7, is_bid=False, is_market=False),
-        Order(trader_id=202, price=103, volume=8, is_bid=False, is_market=False)
+        Order(trader_id=202, price=103, volume=8, is_bid=False, is_market=False),
     ]
-    
+
     ob.process_orders(orders)
-    
+
     # Validate best bid/ask
     assert ob.get_best_bid() == 101
     assert ob.get_best_ask() == 102

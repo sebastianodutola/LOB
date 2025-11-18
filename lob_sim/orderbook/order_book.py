@@ -22,7 +22,7 @@ class OrderBook:
         Price book for the bid (buy) side.
     asks : PriceBook
         Price book for the ask (sell) side.
-    expiration_wheel : ExpirationWheel
+    expiration_wheel : ExpirationWheel, optional
         Manages order expiration based on lifetime.
     trade_history : list of list
         History of [volume_traded, total_exchanged] for each batch.
@@ -55,20 +55,26 @@ class OrderBook:
         Print readable view of both sides of the book.
     """
 
-    def __init__(self, min_lifetime=3, max_lifetime=10_000):
+    def __init__(self, use_scheduler=False, expiration_wheel=None):
         """
         Initialize an order book with expiration parameters.
 
         Parameters
         ----------
-        min_lifetime : int, optional
-            Default lifetime for orders without explicit lifetime (default is 3).
-        max_lifetime : int, optional
-            Maximum lifetime in time steps (default is 10,000).
+        use_scheduler : bool, optional
+            Use a scheduler for scheduled order cancellations and order lifetimes (default is False)
+        expiration_wheel : ExpirationWheel, optional
+            The expiration wheel object used to implement scheduling.
+            If None and use_scheduler is True initialises ExpirationWheel(3, 100) (default None).
         """
         self.bids = PriceBook(is_bid_side=True)
         self.asks = PriceBook(is_bid_side=False)
-        self.expiration_wheel = ExpirationWheel(min_lifetime, max_lifetime)
+
+        # An optional scheduler for order lifetimes and scheduled cancellations.
+        self.use_scheduler = use_scheduler
+        self.expiration_wheel = (
+            expiration_wheel or ExpirationWheel(3, 100) if use_scheduler else None
+        )
 
         # History of volume traded and total money exchanged.
         self.trade_history = []
@@ -105,8 +111,12 @@ class OrderBook:
 
     def advance(self):
         """
-        Advance the state of the book by one step, cancelling expiring orders.
+        Advance the expiration wheel, cancelling expiring orders.
         """
+        if not self.use_scheduler:
+            raise RuntimeError(
+                "Scheduler is disabled. Initialise the orderbook with use_scheduler=True"
+            )
         expirations = self.expiration_wheel.advance()
         self.process_cancellations(expirations)
 
@@ -155,7 +165,8 @@ class OrderBook:
 
             # Only add remaining volume to book if it is a limit order
             if order.volume and not order.is_market:
-                self.expiration_wheel.schedule(order)
+                if self.use_scheduler:
+                    self.expiration_wheel.schedule(order)
                 if order.is_bid:
                     self.bids.add(order)
                 else:
@@ -274,7 +285,8 @@ class OrderBook:
         Resets order book.
         """
         self.trade_history.clear()
-        self.expiration_wheel.reset()
+        if self.use_scheduler:
+            self.expiration_wheel.reset()
         self.bids.clear()
         self.asks.clear()
 

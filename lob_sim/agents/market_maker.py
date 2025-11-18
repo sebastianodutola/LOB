@@ -47,10 +47,10 @@ class MarketMaker:
     update(trades_notifications, order_book)
         Main update function called each tick to process state and generate quotes.
     get_stats()
-        Get current inventory and cash statistics.
+        Get stat history up to current time.
     """
 
-    def __init__(self, strategy, alpha=0.13, trader_id=1):
+    def __init__(self, strategy, alpha=0.13, trader_id=1, initial_capital=1_000_000):
         """
         Initialize the market maker with a trading strategy.
 
@@ -67,7 +67,7 @@ class MarketMaker:
         """
         self.trader_id = trader_id
         self.inventory = 0
-        self.cash = 0
+        self.cash = initial_capital
         self.strategy = strategy
         # Mid-price smoothing
         self.EMA_mp = 100
@@ -239,13 +239,11 @@ class MarketMaker:
 
     def get_stats(self):
         """
-        Get current position and cash statistics.
+        Get history of stats up to current time.
 
         Returns
         -------
         dict
-            Dictionary containing:
-            - "Inventory": Current inventory position
-            - "Cash": Current cash balance
+            The history dictionary.
         """
-        return {"Inventory": self.inventory, "Cash": self.cash}
+        return self.history

@@ -18,8 +18,6 @@ class SkewMarketMakingStrategy:
         Order size for each quote.
     spread : float
         Bid-ask spread.
-    exposure_limit : float
-        Maximum absolute exposure (inventory * mid_price).
     skew_coefficient : float
         Coefficient controlling skew magnitude.
 
@@ -29,7 +27,7 @@ class SkewMarketMakingStrategy:
         Generate bid/ask orders with inventory-based skew.
     """
 
-    def __init__(self, spread, size, exposure_limit, skew_coefficient=1e-5):
+    def __init__(self, spread, size, skew_coefficient=1e-5):
         """
         Parameters
         ----------
@@ -37,14 +35,11 @@ class SkewMarketMakingStrategy:
             Bid-ask spread.
         size : float
             Order size for each quote.
-        exposure_limit : float
-            Maximum absolute exposure (inventory * mid_price).
         skew_coefficient : float, optional
             Coefficient controlling skew magnitude. Default is 1e-4.
         """
         self.size = size
         self.spread = spread
-        self.exposure_limit = exposure_limit
         self.skew_coefficient = skew_coefficient
 
     def __call__(self, inventory, mid_price):
@@ -65,17 +60,12 @@ class SkewMarketMakingStrategy:
         float
             Current spread.
         """
-        orders = []
         exposure = inventory * mid_price
         skew = exposure * self.skew_coefficient
         # Skew is proportional to inventory
-        if exposure <= self.exposure_limit:
-            orders.append(
-                Order(mid_price - self.spread / 2 - skew, self.size, True, False)
-            )
-        if exposure >= -self.exposure_limit:
-            orders.append(
-                Order(mid_price + self.spread / 2 - skew, self.size, False, False)
-            )
+        orders = [
+            Order(mid_price - self.spread / 2 - skew, self.size, True, False),
+            Order(mid_price + self.spread / 2 - skew, self.size, False, False),
+        ]
         # Bubble spread for tracking purposes
         return orders, self.spread
