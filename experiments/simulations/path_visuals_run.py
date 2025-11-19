@@ -6,9 +6,30 @@ import os
 
 # Force save relative to your script
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, "path_visuals.pkl")
+sc_visuals_path = os.path.join(script_dir, "sc_path_visuals.pkl")
+full_visuals_path = os.path.join(script_dir, "full_path_visuals.pkl")
 skew_coefficient = [1e-6, 5e-6, 2e-5]
 paths = {}
+
+# Data for a full path visual
+rng = np.random.default_rng(seed=40)
+res = simulate_path_with_tracking(0.05, 0.5, 5e-6, rng=rng, timesteps=1000)
+path_df = pd.DataFrame(
+    {
+        "bids": res["bids"],
+        "asks": res["asks"],
+        "asset value": res["asset value"],
+        "mid price": res["mid price"],
+        "mark-to-market": res["mark-to-market"],
+    }
+)
+full_path = {"path data": path_df, "summary stats": res["summary stats"]}
+
+with open(full_visuals_path, "wb") as f:
+    pickle.dump(full_path, f)
+
+
+# Data for a skew_coefficient comparison visual
 
 for sc in skew_coefficient:
     rng = np.random.default_rng(seed=40)
@@ -24,5 +45,5 @@ for sc in skew_coefficient:
     )
     paths[sc] = {"path data": path_df, "summary stats": res["summary stats"]}
 
-with open(file_path, "wb") as f:
+with open(sc_visuals_path, "wb") as f:
     pickle.dump(paths, f)

@@ -8,14 +8,15 @@ import pandas as pd
 
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, "path_visuals.pkl")
+sc_data_file_path = os.path.join(script_dir, "sc_path_visuals.pkl")
+figure_dir = os.path.join(script_dir, "figures")
 
-with open(file_path, "rb") as f:
+with open(sc_data_file_path, "rb") as f:
     paths = pickle.load(f)
 
 sns.set_theme()
 
-# Determine y axis extent for plots
+# Determine y axis extent for sc plots
 max_y1 = -float("inf")
 min_y1 = float("inf")
 
@@ -42,7 +43,11 @@ for data in paths.values():
 
 
 fig, ax = plt.subplots(
-    ncols=3, nrows=2, gridspec_kw={"height_ratios": [2, 1]}, sharey="row"
+    ncols=3,
+    nrows=2,
+    gridspec_kw={"height_ratios": [2, 1]},
+    sharey="row",
+    figsize=(15, 10),
 )
 
 ax[0, 0].set_ylim(min_y1 - 0.5, max_y1 + 0.5)
@@ -85,7 +90,7 @@ for j, sc in enumerate(paths):
         x="tick",
         y="price",
         color="black",
-        linewidth=0.5,
+        linewidth=0.8,
         label="asset value",
         ax=ax[0, j],
     )
@@ -93,8 +98,8 @@ for j, sc in enumerate(paths):
         data=mid_df,
         x="tick",
         y="price",
-        color="blue",
-        linewidth=1,
+        color="yellowgreen",
+        linewidth=1.5,
         label="mid price",
         ax=ax[0, j],
     )
@@ -111,6 +116,8 @@ for j, sc in enumerate(paths):
 
     ax[0, j].legend(new_handles, new_labels, loc="lower right")
 
+    ax[0, j].set_title(f"Skew coefficent: {sc}")
+
     # Display PnL
     pnl = path_data["mark-to-market"]
     pnl_df = pnl.explode().reset_index()
@@ -123,4 +130,6 @@ for j, sc in enumerate(paths):
         ax=ax[1, j],
     )
 
-plt.show()
+
+plt.tight_layout()
+fig.savefig(os.path.join(figure_dir, "fig1.png"), dpi=500, bbox_inches="tight")
