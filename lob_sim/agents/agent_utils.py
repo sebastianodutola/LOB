@@ -4,17 +4,17 @@ import numpy as np
 def process_market_maker_data(market_maker):
     history = market_maker.history
 
-    # CALCULATE LOG RETURNS
+    # CALCULATE RETURNS
 
     mtm = np.array(market_maker.history["mark-to-market"])
-    log_rt = np.diff(np.log(mtm))
-    avg_rt = np.mean(log_rt)
+    returns = np.diff(mtm) / mtm[:-1]
+    avg_returns = np.mean(returns)
     final_pnl = mtm[-1]
 
     # CALCULATE (LOG) SHARPE
     # Sample mean of log returns / sample std of log returns
 
-    log_sharpe = avg_rt / np.std(log_rt, ddof=1)
+    log_sharpe = avg_returns / np.std(returns, ddof=1)
 
     # CALCULATE MARKOUT
     tau = 5
@@ -25,7 +25,7 @@ def process_market_maker_data(market_maker):
 
     return {
         "final pnl": final_pnl,
-        "avg log returns": avg_rt,
+        "avg returns": avg_returns,
         "sharpe": log_sharpe,
         "markout": markout,
     }

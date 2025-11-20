@@ -44,7 +44,7 @@ min_y2 = min(np.min(path["path data"]["mark-to-market"]), min_y2)
 fig, ax = plt.subplots(
     nrows=2,
     gridspec_kw={"height_ratios": [2, 1]},
-    figsize=(15, 10),
+    figsize=(10, 8),
 )
 
 ax[0].set_ylim(min_y1 - 0.5, max_y1 + 0.5)

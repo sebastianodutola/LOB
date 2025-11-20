@@ -11,6 +11,7 @@ from .agents import (
 from .core import Asset, Order, MarketOrder
 from .orderbook import OrderBook
 from .simulate_path import simulate_path_with_tracking
+from .simulate_path import simulate_path
 
 __all__ = [
     "InformedTraders",
@@ -22,4 +23,5 @@ __all__ = [
     "OrderBook",
     "simulate_path_with_tracking",
     "process_market_maker_data",
+    "simulate_path",
 ]
