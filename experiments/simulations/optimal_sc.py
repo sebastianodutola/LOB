@@ -33,96 +33,176 @@ def simulate(
     return avg_metrics
 
 
-def grid_optimiser(informed_frac, price_vol, skew_search_space, n, timesteps, rng=None):
-    max_returns = [0, -float("inf")]
-    max_pnl = [0, -float("inf")]
-    min_msd = [0, float("inf")]
-    for sc in skew_search_space:
+def grid_optimiser(
+    metric,
+    is_max,
+    informed_frac,
+    price_vol,
+    sc_min,
+    sc_max,
+    n_sim,
+    n_coarse,
+    n_fine,
+    timesteps,
+    seed=1,
+):
+    rng = np.random.default_rng(seed=seed)
+
+    if is_max:
+        optimal = [0, -float("inf")]
+    else:
+        optimal = [0, float("inf")]
+
+    coarse_sc = np.geomspace(sc_min, sc_max, n_coarse)
+
+    for sc in coarse_sc:
         avg_metrics = simulate(
             informed_frac=informed_frac,
             price_vol=price_vol,
             skew_coefficient=sc,
-            n=n,
+            n=n_sim,
+            rng=rng,
+            timesteps=timesteps,
+        )
+        if is_max:
+            if avg_metrics[metric] > optimal[1]:
+                optimal = [sc, avg_metrics[metric]]
+        else:
+            if avg_metrics[metric] < optimal[1]:
+                optimal = [sc, avg_metrics[metric]]
+
+    r = coarse_sc[1] / coarse_sc[0]
+    k = 1
+    hi = optimal[0] * r ** (k)
+    lo = optimal[0] * r ** (-k)
+    fine_sc = np.geomspace(lo, hi, n_fine)
+    for sc in fine_sc:
+        avg_metrics = simulate(
+            informed_frac=informed_frac,
+            price_vol=price_vol,
+            skew_coefficient=sc,
+            n=n_sim,
             rng=rng,
             timesteps=timesteps,
         )
 
-        if avg_metrics["final pnl"] > max_pnl[1]:
-            max_pnl = [sc, avg_metrics["final pnl"]]
-        if avg_metrics["value msd"] < min_msd[1]:
-            min_msd = [sc, avg_metrics["value msd"]]
-        if avg_metrics["avg returns"] > max_returns[1]:
-            max_returns = [sc, avg_metrics["avg returns"]]
+        if avg_metrics[metric] > optimal[1]:
+            optimal = [sc, avg_metrics[metric]]
 
-    return max_returns, max_pnl, min_msd
+    return informed_frac, price_vol, optimal
 
 
-def process_market_regime(args):
-    frac, vol, skew, n, timesteps, seed = args
-    rng = np.random.default_rng(seed=seed)
-    max_returns, max_pnl, min_msd = grid_optimiser(
-        frac, vol, skew, n=n, timesteps=timesteps, rng=rng
-    )
-    return frac, vol, [max_returns, max_pnl, min_msd]
+def process_task(args):
+    return grid_optimiser(*args)
 
 
-def optimal_sharpe_regime(
+def optimal_regime(
     informed_frac_space,
     price_vol_space,
-    skew_search_space,
-    n=3,
-    timesteps=500,
-    seed=42,
+    metric,
+    is_max,
+    sc_min,
+    sc_max,
+    n_sim,
+    n_coarse,
+    n_fine,
+    timesteps,
+    seed,
 ):
     tasks = [
-        (frac, vol, skew_search_space, n, timesteps, seed)
-        for frac in informed_frac_space
-        for vol in price_vol_space
+        (
+            metric,
+            is_max,
+            frac,
+            vol,
+            sc_min,
+            sc_max,
+            n_sim,
+            n_coarse,
+            n_fine,
+            timesteps,
+            seed,
+        )
+        for i, frac in enumerate(informed_frac_space)
+        for j, vol in enumerate(price_vol_space)
     ]
 
     with Pool() as pool:
-        results = list(tqdm(pool.imap(process_market_regime, tasks), total=len(tasks)))
+        results = list(tqdm(pool.imap(process_task, tasks), total=len(tasks)))
 
     m, n = len(informed_frac_space), len(price_vol_space)
-    optimal_sc = np.zeros([m, n, 3])
-    optimal_values = np.zeros([m, n, 3])
+    optimal_sc = np.zeros([m, n])
+    optimal_values = np.zeros([m, n])
 
-    for frac, vol, maximisers in results:
+    for frac, vol, optimal in results:
         i = list(informed_frac_space).index(frac)
         j = list(price_vol_space).index(vol)
-        for k in range(3):
-            optimal_sc[i, j, k] = maximisers[k][0]
-            optimal_values[i, j, k] = maximisers[k][1]
+        optimal_sc[i, j] = optimal[0]
+        optimal_values[i, j] = optimal[1]
 
     return {
-        "optimal sc-returns": optimal_sc[:, :, 0],
-        "optimal returns": optimal_values[:, :, 0],
-        "optimal sc-pnl": optimal_sc[:, :, 1],
-        "optimal pnl": optimal_values[:, :, 1],
-        "optimal sc-msd": optimal_sc[:, :, 2],
-        "optimal msd": optimal_values[:, :, 2],
+        "optimal sc": optimal_sc,
+        "optimal": optimal_values,
     }
 
 
 if __name__ == "__main__":
-    skew_coefficients = np.concat(
-        [np.arange(1e-6, 1e-5, 2.5e-7), np.arange(1e-5, 1e-4, 2.5e-6)]
-    )
+    sc_min, sc_max = 1e-6, 1e-4
+    n_sim = 5
+    n_coarse = 20
+    n_fine = 10
     informed_frac_space = np.arange(0.1, 1, 0.05)
     price_vol_space = np.arange(0.01, 0.1, 0.005)
-    n = 5
     timesteps = 1000
     seed = 1
-    res = optimal_sharpe_regime(
+    res_returns = optimal_regime(
         informed_frac_space,
         price_vol_space,
-        skew_coefficients,
-        n=n,
+        "avg returns",
+        True,
+        sc_min,
+        sc_max,
+        n_sim,
+        n_coarse,
+        n_fine,
+        timesteps,
+        seed,
+    )
+    res_msd = optimal_regime(
+        informed_frac_space,
+        price_vol_space,
+        metric="value msd",
+        is_max=False,
+        sc_min=sc_min,
+        sc_max=sc_max,
+        n_sim=n_sim,
+        n_coarse=n_coarse,
+        n_fine=n_fine,
+        timesteps=timesteps,
+        seed=seed,
+    )
+    res_pnl = optimal_regime(
+        informed_frac_space,
+        price_vol_space,
+        metric="final pnl",
+        is_max=True,
+        sc_min=sc_min,
+        sc_max=sc_max,
+        n_sim=n_sim,
+        n_coarse=n_coarse,
+        n_fine=n_fine,
         timesteps=timesteps,
         seed=seed,
     )
     data = {
-        "grids": res,
+        "grids": {
+            "optimal sc-returns": res_returns["optimal sc"],
+            "optimal returns": res_returns["optimal"],
+            "optimal sc-msd": res_msd["optimal sc"],
+            "optimal msd": res_msd["optimal"],
+            "optimal sc-pnl": res_pnl["optimal sc"],
+            "optimal pnl": res_pnl["optimal"],
+        },
         "informed fraction space": informed_frac_space,
         "price volatility space": price_vol_space,
     }
