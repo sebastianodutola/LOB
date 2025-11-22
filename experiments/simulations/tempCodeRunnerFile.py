@@ -1,1 +1,0 @@
-surf2 = ax3.plot_surface(X, Y, Z_model, cmap="mako", alpha=0.7)

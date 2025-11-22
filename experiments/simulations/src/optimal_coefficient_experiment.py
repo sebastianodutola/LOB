@@ -1,19 +1,21 @@
-from tqdm import tqdm
+"""
+Grid search optimization for market maker skew coefficients.
+Performs coarse-to-fine search across market regimes to find optimal parameters.
+"""
+
+import os
+import pickle
 import numpy as np
 from multiprocessing import Pool
+from tqdm import tqdm
 from lob_sim import simulate_path
-import pickle
-import os
-
-# data file
-script_dir = os.path.dirname(os.path.abspath(__file__))
-pickle_path = os.path.join(script_dir, "optimal_sc_grids.pkl")
 
 
 def simulate(
     informed_frac, skew_coefficient, price_vol=0.05, n=10, timesteps=1000, rng=None
 ):
-    if rng == None:
+    """Run multiple simulations and return averaged metrics."""
+    if rng is None:
         rng = np.random.default_rng(seed=42)
 
     avg_metrics = {}
@@ -46,6 +48,7 @@ def grid_optimiser(
     timesteps,
     seed=1,
 ):
+    """Two-stage coarse-to-fine grid search for optimal skew coefficient."""
     rng = np.random.default_rng(seed=seed)
 
     if is_max:
@@ -53,6 +56,7 @@ def grid_optimiser(
     else:
         optimal = [0, float("inf")]
 
+    # Coarse search
     coarse_sc = np.geomspace(sc_min, sc_max, n_coarse)
 
     for sc in coarse_sc:
@@ -71,11 +75,13 @@ def grid_optimiser(
             if avg_metrics[metric] < optimal[1]:
                 optimal = [sc, avg_metrics[metric]]
 
+    # Fine search around coarse optimum
     r = coarse_sc[1] / coarse_sc[0]
     k = 1
     hi = optimal[0] * r ** (k)
     lo = optimal[0] * r ** (-k)
     fine_sc = np.geomspace(lo, hi, n_fine)
+
     for sc in fine_sc:
         avg_metrics = simulate(
             informed_frac=informed_frac,
@@ -86,13 +92,18 @@ def grid_optimiser(
             timesteps=timesteps,
         )
 
-        if avg_metrics[metric] > optimal[1]:
-            optimal = [sc, avg_metrics[metric]]
+        if is_max:
+            if avg_metrics[metric] > optimal[1]:
+                optimal = [sc, avg_metrics[metric]]
+        else:
+            if avg_metrics[metric] < optimal[1]:
+                optimal = [sc, avg_metrics[metric]]
 
     return informed_frac, price_vol, optimal
 
 
 def process_task(args):
+    """Worker function for multiprocessing."""
     return grid_optimiser(*args)
 
 
@@ -109,6 +120,7 @@ def optimal_regime(
     timesteps,
     seed,
 ):
+    """Find optimal skew coefficients across entire parameter space."""
     tasks = [
         (
             metric,
@@ -146,15 +158,37 @@ def optimal_regime(
     }
 
 
-if __name__ == "__main__":
+def save_pickle(data, filepath):
+    """Save data to pickle file."""
+    with open(filepath, "wb") as f:
+        pickle.dump(data, f)
+
+
+def run_optimization(output_path=None):
+    """
+    Run optimization across all metrics and save results.
+
+    Usage:
+        run_optimization()
+        run_optimization('output/results.pkl')
+    """
+    if output_path is None:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        output_path = os.path.join(script_dir, "optimal_grids.pkl")
+
+    # Search parameters
     sc_min, sc_max = 1e-6, 1e-4
     n_sim = 5
     n_coarse = 20
     n_fine = 10
-    informed_frac_space = np.arange(0.1, 1, 0.05)
-    price_vol_space = np.arange(0.01, 0.1, 0.005)
     timesteps = 1000
     seed = 1
+
+    # Parameter space
+    informed_frac_space = np.arange(0.1, 1, 0.05)
+    price_vol_space = np.arange(0.01, 0.1, 0.005)
+
+    print("Optimizing for average returns...")
     res_returns = optimal_regime(
         informed_frac_space,
         price_vol_space,
@@ -168,6 +202,8 @@ if __name__ == "__main__":
         timesteps,
         seed,
     )
+
+    print("Optimizing for value MSD...")
     res_msd = optimal_regime(
         informed_frac_space,
         price_vol_space,
@@ -181,6 +217,8 @@ if __name__ == "__main__":
         timesteps=timesteps,
         seed=seed,
     )
+
+    print("Optimizing for final PnL...")
     res_pnl = optimal_regime(
         informed_frac_space,
         price_vol_space,
@@ -194,6 +232,8 @@ if __name__ == "__main__":
         timesteps=timesteps,
         seed=seed,
     )
+
+    # Package results
     data = {
         "grids": {
             "optimal sc-returns": res_returns["optimal sc"],
@@ -207,5 +247,18 @@ if __name__ == "__main__":
         "price volatility space": price_vol_space,
     }
 
-    with open(pickle_path, "wb") as f:
-        pickle.dump(data, f)
+    print(f"Saving results to {output_path}...")
+    save_pickle(data, output_path)
+    print("Optimization complete.")
+
+    return data
+
+
+def main():
+    top_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    output_path = os.path.join(top_dir, "data/optimal_grids.pkl")
+    run_optimization(output_path)
+
+
+if __name__ == "__main__":
+    main()
