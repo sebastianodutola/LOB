@@ -128,7 +128,7 @@ def create_surface_plots(data, output_dir, dpi=500):
 
     Z_data = data["grids"]["optimal sc-returns"]
     Z_model = np.exp(-9.2612 - 0.5837 * np.log(Y) + 1.0278 * np.log(X))
-    Z_residuals = Z_data - Z_model
+    Z_residuals = np.log(Z_data) - np.log(Z_model)
 
     # Data vs model
     fig_surfaces, axes = plt.subplots(

@@ -88,7 +88,7 @@ def dataframe_to_markdown(df, float_format=".6e"):
 def compute_relative_diffference(df, column1, column2):
     """Compute summary statistics, optionally as relative difference."""
     values = (df[column1] - df[column2]) / np.abs(df[column1])
-    label = f"relative difference {column1} vs {column2}"
+    label = f"{column1} vs {column2} (rel diff)"
 
     return {
         "metric": label,

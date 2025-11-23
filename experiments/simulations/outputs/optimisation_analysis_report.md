@@ -23,8 +23,8 @@ Fitting: log(optimal_sc) ~ const + β₁·log(informed_frac) + β₂·log(price_
 
 | Metric | Mean | Std | Min | Max |
 |--------|------|-----|-----|-----|
-| relative difference optimal sc-returns vs optimal sc-msd | 1.388757e-01 | 1.783728e-01 | -1.367386e+00 | 9.304807e-01 |
-| relative difference optimal sc-returns vs optimal sc-pnl | 0.000000e+00 | 0.000000e+00 | 0.000000e+00 | 0.000000e+00 |
+| optimal sc-returns vs optimal sc-msd (rel diff) | 1.388757e-01 | 1.783728e-01 | -1.367386e+00 | 9.304807e-01 |
+| optimal sc-returns vs optimal sc-pnl (rel diff) | 0.000000e+00 | 0.000000e+00 | 0.000000e+00 | 0.000000e+00 |
 
 ## Fixed Informed Fraction (0.5)
 

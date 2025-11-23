@@ -45,7 +45,7 @@ def generate_trajectories(price_vol, informed_frac, skew_coef, timesteps=1000, s
         paths[sc] = {"path data": path_df, "summary stats": results["summary stats"]}
 
     # Return single path dict if only one coefficient, otherwise return full dict
-    return paths[skew_coef] if is_single else paths
+    return paths
 
 
 def save_pickle(data, filepath):

@@ -129,35 +129,9 @@ def plot_trajectory_on_axes(path_data, ax_price, ax_pnl, title=None):
     )
 
 
-def plot_single_trajectory(path, output_dir, filename="single_trajectory.png", dpi=500):
-    """Create figure with single trajectory and PnL plot."""
-    sns.set_theme()
-
-    path_data = path["path data"]
-    price_lim, pnl_lim = compute_axis_limits([path_data])
-
-    fig, axes = plt.subplots(
-        nrows=2,
-        gridspec_kw={"height_ratios": [2, 1]},
-        figsize=(10, 8),
-    )
-
-    axes[0].set_ylim(*price_lim)
-    axes[1].set_ylim(*pnl_lim)
-
-    plot_trajectory_on_axes(path_data, axes[0], axes[1], title="Simulated Trajectory")
-
-    plt.tight_layout()
-    fig.savefig(os.path.join(output_dir, filename), dpi=dpi, bbox_inches="tight")
-
-    return fig
-
-
-def plot_trajectory_comparison(
-    paths, output_dir, filename="trajectory_comparison.png", dpi=500
-):
+def plot_trajectories(paths, output_dir, filename="trajectory_comparison.png", dpi=500):
     """Create figure comparing multiple trajectories side-by-side."""
-    sns.set_theme()
+    sns.set_theme(style="whitegrid", context="paper")
 
     n_paths = len(paths)
     path_data_list = [data["path data"] for data in paths.values()]
@@ -171,14 +145,23 @@ def plot_trajectory_comparison(
         figsize=(10, 8),
     )
 
-    axes[0, 0].set_ylim(*price_lim)
-    axes[1, 0].set_ylim(*pnl_lim)
-
-    for j, (param, data) in enumerate(paths.items()):
-        path_data = data["path data"]
+    if n_paths == 1:
+        axes[0].set_ylim(*price_lim)
+        axes[1].set_ylim(*pnl_lim)
+        path_data = path_data_list[0]
         plot_trajectory_on_axes(
-            path_data, axes[0, j], axes[1, j], title=f"Skew coefficient: {param}"
+            path_data, axes[0], axes[1], title="Simulated Trajectory"
         )
+
+    else:
+        axes[0, 0].set_ylim(*price_lim)
+        axes[1, 0].set_ylim(*pnl_lim)
+
+        for j, (param, data) in enumerate(paths.items()):
+            path_data = data["path data"]
+            plot_trajectory_on_axes(
+                path_data, axes[0, j], axes[1, j], title=f"Skew coefficient: {param}"
+            )
 
     plt.tight_layout()
     fig.savefig(os.path.join(output_dir, filename), dpi=dpi, bbox_inches="tight")
@@ -214,7 +197,7 @@ def render_trajectory_figures(
         print(f"Loading comparison data from {comparison_data_path}...")
         paths = load_data(comparison_data_path)
         print(f"Generating trajectory comparison ({len(paths)} scenarios)...")
-        fig_comparison = plot_trajectory_comparison(
+        fig_comparison = plot_trajectories(
             paths, output_dir, "trajectory_comparison.png", dpi
         )
         figures["comparison"] = fig_comparison
@@ -224,9 +207,7 @@ def render_trajectory_figures(
         print(f"Loading single trajectory data from {single_data_path}...")
         path = load_data(single_data_path)
         print("Generating single trajectory plot...")
-        fig_single = plot_single_trajectory(
-            path, output_dir, "single_trajectory.png", dpi
-        )
+        fig_single = plot_trajectories(path, output_dir, "single_trajectory.png", dpi)
         figures["single"] = fig_single
 
     print(f"All figures saved to {output_dir}")
