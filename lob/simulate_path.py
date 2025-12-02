@@ -1,4 +1,4 @@
-from lob_sim import (
+from lob import (
     OrderBook,
     MarketMaker,
     SkewMarketMakingStrategy,

@@ -7,7 +7,7 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-from lob_sim import simulate_path_with_tracking
+from lob import simulate_path_with_tracking
 
 
 def create_path_dataframe(simulation_results):

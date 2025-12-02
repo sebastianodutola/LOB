@@ -261,13 +261,6 @@ Re-estimating the optimal skew multiple times per regime would allow decompositi
 $H_0: c_{\text{ret}} = c_{\text{msd}}$
 This would provide a rigorous statistical grounding for the observed alignment between efficiency and profitability.
 
-## What I learned 
-
-What I Learned
-1. The central role of market makers in price discovery and liquidity provision. The spread is fundamentally the cost of immediacy and price certainty.
-2.	The importance of inventory management as protection against adverse selection and as a determinant of profitable quoting behaviour.
-3.	How to design robust, modular simulation infrastructure in Python, with clean separation of concerns, parallel execution, and reproducible Monte Carlo experiments.
-
 
 
 

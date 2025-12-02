@@ -12,8 +12,8 @@ Expected output:
 
 from math import isclose
 
-from lob_sim.orderbook import OrderBook
-from lob_sim.core import Order, MarketOrder
+from lob.orderbook import OrderBook
+from lob.core import Order, MarketOrder
 
 
 def run_validation():

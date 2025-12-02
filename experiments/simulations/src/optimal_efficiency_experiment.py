@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import os
 from tqdm import tqdm
-from lob_sim import simulate_path
+from lob import simulate_path
 from multiprocessing import Pool
 
 
