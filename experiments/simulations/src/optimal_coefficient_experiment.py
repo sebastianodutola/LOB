@@ -118,7 +118,6 @@ def optimal_regime(
     n_coarse,
     n_fine,
     timesteps,
-    seed,
 ):
     """Find optimal skew coefficients across entire parameter space."""
     tasks = [
@@ -133,7 +132,7 @@ def optimal_regime(
             n_coarse,
             n_fine,
             timesteps,
-            seed,
+            2**i * 3**j,  # unique seed per task
         )
         for i, frac in enumerate(informed_frac_space)
         for j, vol in enumerate(price_vol_space)
@@ -178,11 +177,10 @@ def run_optimization(output_path=None):
 
     # Search parameters
     sc_min, sc_max = 1e-6, 1e-4
-    n_sim = 5
+    n_sim = 10
     n_coarse = 20
     n_fine = 10
     timesteps = 1000
-    seed = 1
 
     # Parameter space
     informed_frac_space = np.arange(0.1, 1, 0.05)
@@ -200,7 +198,6 @@ def run_optimization(output_path=None):
         n_coarse,
         n_fine,
         timesteps,
-        seed,
     )
 
     print("Optimizing for value MSD...")
@@ -215,7 +212,6 @@ def run_optimization(output_path=None):
         n_coarse=n_coarse,
         n_fine=n_fine,
         timesteps=timesteps,
-        seed=seed,
     )
 
     print("Optimizing for final PnL...")
@@ -230,7 +226,6 @@ def run_optimization(output_path=None):
         n_coarse=n_coarse,
         n_fine=n_fine,
         timesteps=timesteps,
-        seed=seed,
     )
 
     # Package results

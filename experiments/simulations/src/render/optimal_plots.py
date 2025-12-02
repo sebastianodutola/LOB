@@ -42,6 +42,10 @@ def create_dual_heatmap(
     cbar_label_left,
     cbar_label_right,
     cmap="mako",
+    center=None,
+    robust=False,
+    left_mask=None,
+    right_mask=None,
     norm_left=None,
     norm_right=None,
     figsize=(15, 5),
@@ -58,6 +62,9 @@ def create_dual_heatmap(
         norm=norm_left,
         cbar_kws={"label": cbar_label_left},
         ax=axes[0],
+        center=center,
+        robust=robust,
+        mask=np.flipud(left_mask) if left_mask is not None else None,
     )
     axes[0].set_title(title_left)
 
@@ -70,6 +77,9 @@ def create_dual_heatmap(
         norm=norm_right,
         cbar_kws={"label": cbar_label_right},
         ax=axes[1],
+        center=center,
+        robust=robust,
+        mask=np.flipud(right_mask) if right_mask is not None else None,
     )
     axes[1].set_title(title_right)
 
@@ -122,12 +132,14 @@ def create_msd_comparison_plots(data, output_dir, dpi=500):
     return fig
 
 
-def create_surface_plots(data, output_dir, dpi=500):
+def create_surface_plots(data, model_coeffs, output_dir, dpi=500):
     """Generate 3D surface plots comparing data to power law model fit."""
+    a, b, c = model_coeffs
+
     X, Y = np.meshgrid(data["price volatility space"], data["informed fraction space"])
 
     Z_data = data["grids"]["optimal sc-returns"]
-    Z_model = np.exp(-9.2612 - 0.5837 * np.log(Y) + 1.0278 * np.log(X))
+    Z_model = np.exp(a + b * np.log(Y) + c * np.log(X))
     Z_residuals = np.log(Z_data) - np.log(Z_model)
 
     # Data vs model
@@ -155,7 +167,7 @@ def create_surface_plots(data, output_dir, dpi=500):
     surf_resid = ax_resid.plot_surface(X, Y, Z_residuals, cmap="coolwarm", alpha=1)
     ax_resid.set_title("Model Residuals")
     ax_resid.view_init(elev=35, azim=130)
-    fig_residuals.colorbar(surf_resid, ax=ax_resid, label="Residuals", shrink=0.5)
+    fig_residuals.colorbar(surf_resid, ax=ax_resid, label="Log Residuals", shrink=0.5)
     format_3d_axes(ax_resid)
 
     fig_surfaces.savefig(
@@ -174,7 +186,7 @@ def create_difference_heatmap(data, output_dir, dpi=500):
     """Show relative difference between return-optimized and MSD-optimized strategies."""
     sc_returns = data["grids"]["optimal sc-returns"]
     sc_msd = data["grids"]["optimal sc-msd"]
-    relative_diff = (sc_returns - sc_msd) / np.abs(sc_returns)
+    relative_diff = np.exp(np.log(sc_msd) - np.log(sc_returns)) - 1
 
     fig, ax = plt.subplots(figsize=(10, 8))
 
@@ -200,7 +212,40 @@ def create_difference_heatmap(data, output_dir, dpi=500):
     return fig
 
 
-def render_optimisation_figures(data_path, output_dir=None, dpi=500):
+def create_optimality_loss_heatmaps(data_ol, output_dir, dpi=500):
+    ol_ret = data_ol["optimality loss returns"]
+    ol_msd = data_ol["optimality loss msd"]
+
+    informed_frac_space = data_ol["informed fraction space"]
+    price_vol_space = data_ol["price volatility space"]
+
+    cmap = plt.get_cmap("seismic")
+    cmap.set_bad("grey")
+
+    fig, _ = create_dual_heatmap(
+        data_left=ol_ret,
+        data_right=ol_msd,
+        price_vol_space=price_vol_space,
+        informed_frac_space=informed_frac_space,
+        title_left="Optimality Loss for Returns",
+        title_right="Optimality Loss for Mean Squared Difference",
+        cbar_label_left="Percentage Loss (1=100%)",
+        cbar_label_right="Percentage Loss (1=100%)",
+        cmap=cmap,
+        center=0,
+        robust=True,
+    )
+
+    fig.savefig(
+        os.path.join(output_dir, "optimality_loss_heatmaps.png"),
+        dpi=dpi,
+        bbox_inches="tight",
+    )
+
+    return fig
+
+
+def render_optimisation_figures(data_path, data_ol_path, output_dir=None, dpi=500):
     """
     Generate all analysis figures from optimization results.
 
@@ -208,16 +253,20 @@ def render_optimisation_figures(data_path, output_dir=None, dpi=500):
         render_all_figures('results/optimal_sc_grids.pkl')
         render_all_figures('data.pkl', 'custom_output/', dpi=300)
     """
+    # Hard coding coeffs (ideally we would bus this info from optimal_tables)
+    model_coeffs = (-9.3515, -0.5655, 1.0007)
+
     # Set up paths
     if output_dir is None:
         script_dir = os.path.dirname(os.path.abspath(data_path))
         output_dir = os.path.join(script_dir, "figures")
-
     os.makedirs(output_dir, exist_ok=True)
 
     # Load and generate
     print(f"Loading data from {data_path}...")
     data = load_data(data_path)
+    print(f"Loading data from {data_ol_path}...")
+    data_ol = load_data(data_ol_path)
 
     print("Generating optimal return plots...")
     fig_optimal = create_optimal_return_plots(data, output_dir, dpi)
@@ -226,10 +275,15 @@ def render_optimisation_figures(data_path, output_dir=None, dpi=500):
     fig_msd = create_msd_comparison_plots(data, output_dir, dpi)
 
     print("Generating 3D surface plots...")
-    fig_surfaces, fig_residuals = create_surface_plots(data, output_dir, dpi)
+    fig_surfaces, fig_residuals = create_surface_plots(
+        data, model_coeffs, output_dir, dpi
+    )
 
     print("Generating difference heatmap...")
     fig_difference = create_difference_heatmap(data, output_dir, dpi)
+
+    print("Generating optimality loss heatmaps...")
+    fig_optimality_loss = create_optimality_loss_heatmaps(data_ol, output_dir, dpi)
 
     print(f"All figures saved to {output_dir}")
 
@@ -239,6 +293,7 @@ def render_optimisation_figures(data_path, output_dir=None, dpi=500):
         "surfaces": fig_surfaces,
         "residuals": fig_residuals,
         "difference": fig_difference,
+        "optimality_loss": fig_optimality_loss,
     }
 
 
@@ -246,15 +301,22 @@ def main():
     top_dir = os.path.dirname(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     )
-    data_path = os.path.join(top_dir, "data/optimal_sc_grids.pkl")
+    data_path = os.path.join(top_dir, "data/optimal_grids.pkl")
+    data_ol_path = os.path.join(top_dir, "data/optimality_loss.pkl")
+    output_dir = os.path.join(top_dir, "outputs/figures")
 
     if not os.path.exists(data_path):
         raise FileNotFoundError(
             f"Data file not found at {data_path}. "
             "Please ensure 'optimal_sc_grids.pkl' exists in the script directory."
         )
+    if not os.path.exists(data_ol_path):
+        raise FileNotFoundError(
+            f"Data file not found at {data_ol_path}. "
+            "Please ensure 'optimality_loss.pkl' exists in the script directory."
+        )
 
-    render_optimisation_figures(data_path)
+    render_optimisation_figures(data_path, data_ol_path, output_dir=output_dir)
 
 
 if __name__ == "__main__":
