@@ -15,6 +15,18 @@ The repository functions as a microstructure sandbox for experiments ranging fro
 - The simulation layer enables controlled studies of how quoting strategies vary across regimes, providing a basis for experimentation with market-making and informed-trader interactions.
 - Parameters, search procedures, and regression methods are documented to support reproducibility. The modular structure allows straightforward extension to alternative agent models or price-formation mechanisms.
 
+### Performance Snapshot
+
+| Metric | Result | Notes |
+|--------|--------|-------|
+| **Matching throughput** | ~ 1M limit orders/sec (Python) | Heap-based best-price selection; stable (increased speed) under deep-book conditions. |
+| **Cancellation cost** | Degrades with per-level depth (O(N)) | Demonstrates architectural trade-off from Python `deque.remove()` scans. |
+| **Best-price operations** | O(log N) | Efficient due to heap structure; scales well with number of price levels. |
+| **Cache behaviour** | Observable performance cliff between ~10k and 100k deques | Indicates memory pressure and pointer-chasing effects in Python containers. |
+| **Simulation scale** | 291,600 simulated trajectories and ~ 3.5B matching operations | Search Grid over volatility × informed-trader fraction. |
+| **Optimal skew surface** | Power-law dependence on volatility and informed fraction | Regression achieves high explanatory power (R² ≈ 0.94+). |
+| **Profit vs efficiency discrepancy** | Typically < 3% | Median optimality-loss ≈ 0 across regimes. |
+
 ### What’s Inside
 
 | Component |	Purpose | 
@@ -106,7 +118,7 @@ The optimal‑coefficient experiment must be run before the efficiency compariso
 
 These experiments are computationally expensive and are provided for completeness rather than routine execution.
 
-Key Findings (Summary)
+## Key Findings (Summary)
 - Book matching throughput remains high (millions of order ops) under realistic load, but cancellations degrade as price-level depth increases due to an architecture trade-off (using a python library deque)
 - In simulated markets with endogenous price formation, optimal skew (inventory-based quote adjustment) follows a consistent power-law scaling with volatility and fraction of informed traders across regimes.
 - The “profit-optimal” and “efficiency-optimal” skews remain very close in the majority (~ 50%) of regimes, suggesting market maker profit incentives and market efficiency are well algined. 
@@ -119,6 +131,11 @@ Limitations & Next Steps
 - Statistical analysis currently reports point estimates without error bands or hypothesis testing; future work could add bootstrap-based confidence intervals or implement hypothesis testing.
 
 Nonetheless, the repo constitutes a solid foundation — engine + experiment pipeline + economic analyis — that can be extended or reimplemented as needed.
+
+## Reports
+[Endogenous Pricing Simulation Report (PDF)](Endogenous_pricing.pdf) 
+[Benchmark Report (PDF)](benchmark_report.pdf)
+
 
 ## What I learned 
 
