@@ -55,7 +55,7 @@ This installs the `lob` package, which provides the order‑book engine, agent m
 The public API exposes the main components needed for constructing order‑flow environments:
 
 ```python
-from lob import OrderBook, Order, MarketOrder, simulate_path
+from lob import OrderBook, Order, simulate_path
 
 # Processing a single order
 book = OrderBook()
