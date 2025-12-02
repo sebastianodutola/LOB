@@ -27,9 +27,6 @@ The repository functions as a microstructure sandbox for experiments ranging fro
 
 ## Getting Started
 
-
-## Getting Started
-
 ### Installation
 
 The core limit‑order book engine can be installed from the repository root:
