@@ -15,6 +15,17 @@ The repository functions as a microstructure sandbox for experiments ranging fro
 - The simulation layer enables controlled studies of how quoting strategies vary across regimes, providing a basis for experimentation with market-making and informed-trader interactions.
 - Parameters, search procedures, and regression methods are documented to support reproducibility. The modular structure allows straightforward extension to alternative agent models or price-formation mechanisms.
 
+### What’s Inside
+
+| Component |	Purpose | 
+| ----| ---|
+|lob_sim/ | 	Core matching-engine implementation (add, cancel, execution, per-order book maintenance)|
+|experiments/|	Scripts for running benchmark workloads and the Monte-Carlo market-maker simulations|
+|Benchmark Report|	Performance analysis: matching speed, cancellation cost scaling, cache & memory effects|
+|Simulation Report|	Results of endogenous-pricing experiments: optimal skew surfaces, regression fits, efficiency vs profit trade-offs|
+|requirements.txt, setup.py|	Dependencies listing and installable package setup for ease of reuse|
+
+
 ### Performance Snapshot
 
 | Metric | Result | Notes |
@@ -26,16 +37,6 @@ The repository functions as a microstructure sandbox for experiments ranging fro
 | **Simulation scale** | 291,600 simulated trajectories and ~ 3.5B matching operations | Search Grid over volatility × informed-trader fraction. |
 | **Optimal skew surface** | Power-law dependence on volatility and informed fraction | Regression achieves high explanatory power (R² ≈ 0.94+). |
 | **Profit vs efficiency discrepancy** | Typically < 3% | Median optimality-loss ≈ 0 across regimes. |
-
-### What’s Inside
-
-| Component |	Purpose | 
-| ----| ---|
-|lob_sim/ | 	Core matching-engine implementation (add, cancel, execution, per-order book maintenance)|
-|experiments/|	Scripts for running benchmark workloads and the Monte-Carlo market-maker simulations|
-|Benchmark Report|	Performance analysis: matching speed, cancellation cost scaling, cache & memory effects|
-|Simulation Report|	Results of endogenous-pricing experiments: optimal skew surfaces, regression fits, efficiency vs profit trade-offs|
-|requirements.txt, setup.py|	Dependencies listing and installable package setup for ease of reuse|
 
 ## Getting Started
 
