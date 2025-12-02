@@ -82,6 +82,19 @@ def simulate_path_with_tracking(
 def simulate_path(
     price_volatility, informed_frac, skew_coefficient, timesteps=1000, rng=None
 ):
+    """
+    Simluate a trajectory and return its summary statistics.
+
+    Returns
+    -------
+    summary_stats: dict
+        Summary stat keys
+            - "final pnl"
+            - "avg returns"
+            - "sharpe"
+            - "markout"
+            - "value msd"
+    """
 
     if rng == None:
         rng = np.random.default_rng(seed=42)

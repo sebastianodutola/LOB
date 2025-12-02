@@ -3,6 +3,7 @@
 ## Performance Summary
 **Note on Definitions:** "Depth" as used in "DeepBook" and "ShallowBook" refers to volume per price level.
 **Test Configuration:** 1M total orders, Seed: 42
+**Hardware**: CPU: M1 Pro, 
 
 ### Averaged Results (Multiple Runs)
 
@@ -34,7 +35,7 @@
 - **ShallowBook:** deque.remove() = 0.033s for 100k cancellations (searching through ~10 orders per level)
 - **DeepBook:** deque.remove() = 11.343s for 100k cancellations (searching through ~10k orders per level)
 
-The performance slows because dequeu.remove() must linearly scan the deque to locate the target order. With 1000× more orders per level, the operation consumes **98.5% of total cancellation time** in DeepBook scenarios.
+The performance slows because deque.remove() must linearly scan the deque to locate the target order. With 1000× more orders per level, the operation consumes **98.5% of total cancellation time** in DeepBook scenarios.
 
 **Fix:** A hash-linked list cancellation time-complexity may be reduced to O(1). However, I decided to use standard python data-structures for simplicity.
 
@@ -83,7 +84,7 @@ The exact threshold depends on hardware architecture and cache size, but the eff
 
 #### Why the 2× Slowdown in Real Code?
 
-The plain deque test shows a 32% cache effect. But the actual `PriceLevel.add()` method shows a 2× slowdown. The difference might comee from **amplification through multiple attribute lookups**:
+The plain deque test shows a 32% cache effect. But the actual `PriceLevel.add()` method shows a 2× slowdown. The difference might come from **amplification through multiple attribute lookups**:
 
 Each call to `add()` performs:
 - `self.orders` - attribute lookup
